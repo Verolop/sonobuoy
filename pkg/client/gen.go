@@ -41,6 +41,7 @@ type templateValues struct {
 	Namespace            string
 	EnableRBAC           bool
 	ImagePullPolicy      string
+	ImagePullSecrets     string
 	KubeConformanceImage string
 	SSHKey               string
 	SSHUser              string
@@ -85,6 +86,7 @@ func (*SonobuoyClient) GenerateManifest(cfg *GenConfig) ([]byte, error) {
 		Namespace:            cfg.Namespace,
 		EnableRBAC:           cfg.EnableRBAC,
 		ImagePullPolicy:      cfg.ImagePullPolicy,
+		ImagePullSecrets:     cfg.ImagePullSecrets,
 		KubeConformanceImage: cfg.KubeConformanceImage,
 		SSHKey:               base64.StdEncoding.EncodeToString(sshKeyData),
 		SSHUser:              cfg.SSHUser,
