@@ -36,7 +36,7 @@ import (
 // directory, taking a user's plugin selections, and a sonobuoy phone home
 // address (host:port) and returning all of the active, configured plugins for
 // this sonobuoy run.
-func LoadAllPlugins(namespace, sonobuoyImage, imagePullPolicy string, searchPath []string, selections []plugin.Selection) (ret []plugin.Interface, err error) {
+func LoadAllPlugins(namespace, sonobuoyImage, imagePullPolicy, imagePullSecrets string, searchPath []string, selections []plugin.Selection) (ret []plugin.Interface, err error) {
 	pluginDefinitionFiles := make(map[string]struct{})
 	for _, dir := range searchPath {
 		wd, _ := os.Getwd()
@@ -76,7 +76,7 @@ func LoadAllPlugins(namespace, sonobuoyImage, imagePullPolicy string, searchPath
 
 	plugins := []plugin.Interface{}
 	for _, def := range pluginDefinitions {
-		loadedPlugin, err := loadPlugin(def, namespace, sonobuoyImage, imagePullPolicy)
+		loadedPlugin, err := loadPlugin(def, namespace, sonobuoyImage, imagePullPolicy, imagePullSecrets)
 		if err != nil {
 			return nil, errors.Wrapf(err, "couldn't load plugin %v", def.SonobuoyConfig.PluginName)
 		}
@@ -116,7 +116,7 @@ func loadDefinition(bytes []byte) (*manifest.Manifest, error) {
 	return &def, errors.Wrap(err, "couldn't decode yaml for plugin definition")
 }
 
-func loadPlugin(def *manifest.Manifest, namespace, sonobuoyImage, imagePullPolicy string) (plugin.Interface, error) {
+func loadPlugin(def *manifest.Manifest, namespace, sonobuoyImage, imagePullPolicy, imagePullSecrets string) (plugin.Interface, error) {
 	pluginDef := plugin.Definition{
 		Name:         def.SonobuoyConfig.PluginName,
 		ResultType:   def.SonobuoyConfig.ResultType,
@@ -126,9 +126,9 @@ func loadPlugin(def *manifest.Manifest, namespace, sonobuoyImage, imagePullPolic
 
 	switch def.SonobuoyConfig.Driver {
 	case "Job":
-		return job.NewPlugin(pluginDef, namespace, sonobuoyImage, imagePullPolicy), nil
+		return job.NewPlugin(pluginDef, namespace, sonobuoyImage, imagePullPolicy, imagePullSecrets), nil
 	case "DaemonSet":
-		return daemonset.NewPlugin(pluginDef, namespace, sonobuoyImage, imagePullPolicy), nil
+		return daemonset.NewPlugin(pluginDef, namespace, sonobuoyImage, imagePullPolicy, imagePullSecrets), nil
 	default:
 		return nil, fmt.Errorf("unknown driver %q for plugin %v",
 			def.SonobuoyConfig.Driver, def.SonobuoyConfig.PluginName)
